@@ -141,7 +141,6 @@ cc.Class({
 
     reLoadEdgeTiles: function(){
         //根据 当前块  移动方向 和视口 起始位置 终结位置 偏移位置
-        //在代码里面做边界测试
         let moveStartPosition = cc.Vec2.ZERO;
         let moveEndPosition = cc.Vec2.ZERO;
         let moveOffset = cc.Vec2.ZERO;
@@ -150,31 +149,23 @@ cc.Class({
                 moveStartPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(1,0)), cc.v2(Math.floor(this._viewPort.width / 2), - Math.floor(this._viewPort.height / 2)));
                 moveEndPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(1,0)), cc.v2(Math.floor(this._viewPort.width / 2), Math.floor(this._viewPort.height / 2)));
                 moveOffset = cc.v2( - this._viewPort.width,0);
-                if(moveStartPosition.x + moveOffset.x < 0){return;}
                 break;}
             case 'right': {
                 moveStartPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(-1,0)), cc.v2(- Math.floor(this._viewPort.width / 2), - Math.floor(this._viewPort.height / 2)));
                 moveEndPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(-1,0)), cc.v2(- Math.floor(this._viewPort.width / 2),  Math.floor(this._viewPort.height / 2)));
                 moveOffset = cc.v2( this._viewPort.width,0);
-                if(moveStartPosition.x + moveOffset.x > (this._mapSize.width - 1)){return;}
                 break;}
             case 'up': {
                 moveStartPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(0,1)), cc.v2(- Math.floor(this._viewPort.width / 2), Math.floor(this._viewPort.height / 2)));
                 moveEndPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(0,1)), cc.v2(Math.floor(this._viewPort.width / 2), Math.floor(this._viewPort.height / 2)));
                 moveOffset = cc.v2(0,- this._viewPort.height);
-                if(moveStartPosition.y + moveOffset.y < 0 ){return;}
                 break;}
             case 'down': {
                 moveStartPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(0,-1)), cc.v2(- Math.floor(this._viewPort.width / 2), - Math.floor(this._viewPort.height / 2)));
                 moveEndPosition = cc.pAdd(cc.pAdd(this._currentCenterPos,cc.v2(0,-1)), cc.v2(Math.floor(this._viewPort.width / 2), - Math.floor(this._viewPort.height / 2)));
                 moveOffset = cc.v2(0,this._viewPort.height);
-                if(moveStartPosition.y + moveOffset.y > (this._mapSize.height - 1) ){return;}
                 break;}
         }
-
-        //更新边界
-        moveStartPosition = cc.pClamp(moveStartPosition,cc.v2(0,0),cc.v2(this._mapSize.width, this._mapSize.height));
-        moveEndPosition = cc.pClamp(moveEndPosition,cc.v2(0,0),cc.v2(this._mapSize.width, this._mapSize.height));
 
         //移动他们 并更新他们的名字 和 上面的纹理
         for(let xIdx = moveStartPosition.x;xIdx <= moveEndPosition.x; xIdx++){
@@ -187,11 +178,15 @@ cc.Class({
                 let tileNewXIdx = parseInt(tilePosInfoArray[1]) + moveOffset.x;
                 let tileNewYIdx = parseInt(tilePosInfoArray[2]) + moveOffset.y;
                 tile.name = "tile#" + tileNewXIdx + "#" + tileNewYIdx;
-                
+
                 let groundTileSpriteComp = tile.getComponent(cc.Sprite);
-                let idxInMapData = tileNewYIdx * this._mapSize.width + tileNewXIdx;
-                //console.log(this._mapLayer[idxInMapData]);
-                let tileSpriteFrame = this._atlasData.getSpriteFrame(this._convertedBindData[this._mapLayer[idxInMapData]]);
+                let tileSpriteFrame = this._atlasData.getSpriteFrame("ground");
+                //边界纹理测试
+                if(tileNewXIdx >= 0 && tileNewXIdx < this._mapSize.width && tileNewYIdx >= 0 && tileNewYIdx < this._mapSize.height){
+                    let idxInMapData = tileNewYIdx * this._mapSize.width + tileNewXIdx;
+                    //console.log(this._mapLayer[idxInMapData]);
+                    tileSpriteFrame = this._atlasData.getSpriteFrame(this._convertedBindData[this._mapLayer[idxInMapData]]);
+                }
                 groundTileSpriteComp.spriteFrame = tileSpriteFrame;
             }
         }
